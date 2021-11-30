@@ -1,4 +1,4 @@
-module RISCV_Processor #(parameter DWIDTH=32, AWIDTH=32, IWIDTH=32, RAWIDTH=5)
+module RISCV_Processor_pipelined #(parameter DWIDTH=32, AWIDTH=32, IWIDTH=32, RAWIDTH=5)
 (	input clk,
 	input rst
 );
