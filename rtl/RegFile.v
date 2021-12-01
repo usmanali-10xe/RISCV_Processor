@@ -13,7 +13,7 @@ module RegFile #(parameter RAWIDTH=5, DWIDTH=32)
 	assign	DataA = register[AddrA];
 	assign	DataB = register[AddrB];
 
-always @ (posedge clk)
+always @ (negedge clk)
 begin
 	register[AddrD] <= RegWEn ? DataD : register[AddrD] ;
 	register[0] 	<= {DWIDTH{1'b0}}; 
