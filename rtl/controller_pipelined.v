@@ -69,7 +69,8 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	assign RegWEn	= !(opcode_w==sbtype||opcode_w==stype);
 	
 	//////////////// depends on branch//////
-	assign PCSel	= (opcode_x==sbtype)? BrTrue : opcode_x[6]; 
+	assign PCSel	= (opcode_x==sbtype)? BrTrue 
+			: opcode_x[6]; 
 
 	//////////////// Forwarding muxer selection//////
 
@@ -79,16 +80,16 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	assign m_have_rd  = !(opcode_m==sbtype||opcode_m==stype)&&!(&inst_m[11:7]);
 	assign w_have_rd  = !(opcode_w==sbtype||opcode_w==stype)&&!(&inst_w[11:7]);
 	
-	assign AfSel 	= (m_have_rd&(inst_x[19:15]==inst_m[11:7]))?	2'b01 // rs1_x=rd_m;
-			: (w_have_rd&(inst_x[19:15]==inst_w[11:7]))?	2'b10 // rs1_x=rd_w;
+	assign AfSel 	= (m_have_rd&&(inst_x[19:15]==inst_m[11:7]))?	2'b01 // rs1_x=rd_m;
+			: (w_have_rd&&(inst_x[19:15]==inst_w[11:7]))?	2'b10 // rs1_x=rd_w;
 			:						2'b00; 
-	assign BfSel 	= (m_have_rd&(inst_x[24:20]==inst_m[11:7]))?	2'b01
-			: (w_have_rd&(inst_x[24:20]==inst_w[11:7]))?	2'b10
+	assign BfSel 	= (m_have_rd&&(inst_x[24:20]==inst_m[11:7]))?	2'b01
+			: (w_have_rd&&(inst_x[24:20]==inst_w[11:7]))?	2'b10
 			:						2'b00;
 	//////////////// stalling signal for load type//////
-	assign stall 	= m_have_rd&(inst_x[19:15]==inst_m[11:7]||inst_x[24:20]==inst_m[11:7])&(opcode_m==itype1); // rs1_x=rd_m; 
+	assign stall 	= m_have_rd&&(inst_x[19:15]==inst_m[11:7]||inst_x[24:20]==inst_m[11:7])&(opcode_m==itype1); // rs1_x=rd_m; 
 	
 	//////////////// flushing for taken branch//////
-	assign flush 	= BrTrue&(opcode_m==sbtype); // rs1_x=rd_m; 
+	assign flush 	= (BrTrue&&(opcode_x==sbtype))||(opcode_x==ujtype)||(opcode_x==itype5); // rs1_x=rd_m; 
 
 endmodule 

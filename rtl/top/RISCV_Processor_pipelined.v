@@ -37,17 +37,17 @@ module RISCV_Processor_pipelined #(parameter DWIDTH=32, AWIDTH=32, IWIDTH=32, RA
 // IMEM
 	IMEM im(.clk(clk), .ILoad(1'b0), .IAddr(pc_out), .inst(inst), .instW(32'b0));
 //*********ID register*********//
-	register ID_inst(.clk(clk), .rst(rst), .load(!stall), .data_in(inst), .data_out(inst_d));
-	register ID_pc(.clk(clk), .rst(rst), .load(!stall), .data_in(pc_out), .data_out(pc_out_d));
+	register ID_inst(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(inst), .data_out(inst_d));
+	register ID_pc(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(pc_out), .data_out(pc_out_d));
 // REGFILE
 	RegFile rfile(.clk(clk) , .RegWEn(RegWEn), .AddrA(inst_d[19:15]), .AddrB(inst_d[24:20]), .AddrD(inst_w[11:7]), .DataD(wb) , .DataA (DataA), .DataB (DataB));
 //*********IE register*********//
-	register IE_DataA(.clk(clk), .rst(rst), .load(!stall), .data_in(DataA), .data_out(DataA_x));
-	register IE_DataB(.clk(clk), .rst(rst), .load(!stall), .data_in(DataB), .data_out(DataB_x));
-	register IE_pc(.clk(clk), .rst(rst), .load(!stall), .data_in(pc_out_d), .data_out(pc_out_x));
-	register IE_inst(.clk(clk), .rst(rst), .load(!stall), .data_in(inst_d), .data_out(inst_x));
+	register IE_DataA(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(DataA), .data_out(DataA_x));
+	register IE_DataB(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(DataB), .data_out(DataB_x));
+	register IE_pc(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(pc_out_d), .data_out(pc_out_x));
+	register IE_inst(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(inst_d), .data_out(inst_x));
 // BranchComp
-	BranchComp br_cmp(.BrUn(BrUn), .BrA(DataA_x), .BrB(DataB_x), .BrEq(BrEq), .BrLT(BrLT));
+	BranchComp br_cmp(.BrUn(BrUn), .BrA(DataA_fx), .BrB(DataB_fx), .BrEq(BrEq), .BrLT(BrLT));
 // ImmGen
 	ImmGen imgen(.inst(inst_x[IWIDTH-1:7]), .ImmSel(ImmSel), .Imm(imm_x));
 // BSel_mux
