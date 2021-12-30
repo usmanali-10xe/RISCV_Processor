@@ -1,0 +1,29 @@
+@00	
+	//00 30 0E 13 //    addi 	t3, x0, 3	#initial number of series
+	//00 A0 0A 93 //    addi	s5, x0, 10	#total numbers to be stored in array
+	00 2A 9A 93 //    slli	s5, s5, 2	#total numbers to be stored in array word addressable
+	00 00 09 33 //    add	s2, x0, x0	#array address
+	00 09 03 93 //    mv	t2, s2		#array address in temp for advancement
+	00 00 0E B3 //    add	t4, x0, x0	#temp var
+//array_filling:
+	01 C3 A0 23 //    sw	t3, 0(t2)	#storing numbers as word
+	00 43 83 93 //    addi	t2, t2, 4	#advancing address by 4 byte
+	01 53 8A 63 //    beq	t2, s5, stored
+	00 1E 1E 93 //    slli	t4, t3, 1	#temp=2x
+	01 CE 8E 33 //    add	t3, t4, t3	#x=temp+x //3x
+	00 1E 0E 13 //    addi	t3, t3, 1	#x=x+1	  //3x+1
+	FE 9F F0 6F //    jal	x0, array_filling	#looping 
+//stored:
+	00 00 04 13 //    mv	s0, x0		#total even numbers in array
+	00 00 04 93 //    mv	s1, x0		#total odd numbers in array
+	00 09 03 93 //    mv	t2, s2		#array address in temp for advancement
+//checking:
+	00 03 AE 03 //    lw	t3, 0(t2)
+	00 43 83 93 //    addi	t2, t2, 4	#advancing address by 4 byte
+	01 53 8C 63 //    beq	t2, s5, done
+	00 1E 73 13 //    andi	t1, t3, 1 	# t3&1==0 for even t3&1==1 for odd
+	00 64 84 B3 //    add	s1, s1, t1	# s1+=(t3&1==1) odd number
+	FE 03 06 E3 //    beq	t1, x0, checking
+	00 14 04 13 //    addi	s0, s0, 1	# s0+=(t1==0) even number
+	FE 5F F0 6F //    jal	x0, checking 
+//done:
