@@ -12,7 +12,7 @@ reg clk,rst;
     end
   endtask
 
-RISCV_Processor single_cycle_risc_inst(clk,rst);
+RISCV_Processor_pipelined_withBP single_cycle_risc_inst(clk,rst);
 
 initial begin
 // checking total number of even and odd numbers in a series by saving it in an array of words(4bytes)
@@ -30,7 +30,7 @@ initial begin
 // to check nth fibonacci number 
         //$readmemh("fibonacci_test.text", single_cycle_risc_inst.im.Instruction) ;
 	reset;
-	clock(2000);
+	clock(200);
 
 $finish;
 end

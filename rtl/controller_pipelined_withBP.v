@@ -1,11 +1,12 @@
-module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
+module controller_pipelined_withBP #(parameter AWIDTH=32, DWIDTH=32 )
 (	input			BrEq,
 	input			BrLT,
+	input	[DWIDTH-1:0]	inst_f,
 	input	[DWIDTH-1:0]	inst_x,
 	input	[DWIDTH-1:0]	inst_m,
 	input	[DWIDTH-1:0]	inst_w,
-	
-	output	           	PCSel,
+	input			BrPred_x,
+	output	        [1:0]  	PCSel,
 	output		[2:0]	ImmSel,
 	output  		RegWEn,
 	output  		BrUn,
@@ -16,6 +17,7 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	output		[1:0]	WBSel,
 	output			stall,
 	output			flush,
+	output			Br_f, Br_x, BrTrue,
 	output		[2:0]	Size
 );
 	// instruction types based on opcode
@@ -27,9 +29,9 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 			utype1 = 7'b0010111, utype2 = 7'b0110111,
 			ujtype = 7'b1101111;
 			
-	wire [6:0] opcode_x,opcode_m,opcode_w;
+	wire [6:0] opcode_f,opcode_x,opcode_m,opcode_w;
 	wire [2:0] func3_x,func3_m,func3_w;
-	wire BrTrue;
+	assign opcode_f = inst_f [6:0];
 	assign opcode_x = inst_x [6:0];
 	assign func3_x  = inst_x [14:12];
 	assign opcode_m = inst_m [6:0];
@@ -38,12 +40,15 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	assign func3_w  = inst_w [14:12];
 	
 	//assign func7[5] = inst [30];
+
+	/////////////////// IF - stage ///////////////////
+	assign Br_f	= (opcode_f==sbtype);
 	/////////////////// IE - stage ///////////////////
 	assign BrTrue	= (func3_x[2]&func3_x[0])? (BrEq || !BrLT)
 			: (func3_x[2]&!func3_x[0])? BrLT
 			:  func3_x[0]?		!BrEq
 			:			BrEq;
-	
+	assign Br_x	= (opcode_x==sbtype);
 	assign BrUn	= func3_x[2] & func3_x[1];
 	assign ALUSel 	= (opcode_x==rtype1||opcode_x==rtype2)?{inst_x[30],func3_x} 
 			: (opcode_x==itype3)?			{1'b0,func3_x}
@@ -68,8 +73,9 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	assign RegWEn	= !(opcode_w==sbtype||opcode_w==stype);
 	
 	//////////////// depends on branch//////
-	assign PCSel	= (opcode_x==sbtype)? BrTrue 
-			: opcode_x[6]; 
+	assign PCSel	= flush?	2'b01 
+			: Br_f?		2'b10
+			: 		2'b00;
 
 	//////////////// Forwarding muxer selection//////
 	//wire x_have_rs1 = !(opcode_x==utype1||opcode_x==utype2||opcode_x==ujtype)&&!(opcode_x==0);
@@ -88,6 +94,6 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 	assign stall 	= m_have_rd&&(inst_x[19:15]==inst_m[11:7]||inst_x[24:20]==inst_m[11:7])&(opcode_m==itype1); // rs1_x=rd_m; 
 	
 	//////////////// flushing for taken branch//////
-	assign flush 	= (BrTrue&&(opcode_x==sbtype))||(opcode_x==ujtype)||(opcode_x==itype5); // rs1_x=rd_m; 
+	assign flush 	= ((BrTrue!=BrPred_x)&&Br_x)||(opcode_x==ujtype)||(opcode_x==itype5)||(opcode_x==itype6); // rs1_x=rd_m; 
 
 endmodule 

@@ -30,7 +30,7 @@ initial begin
 // to check nth fibonacci number 
         //$readmemh("fibonacci_test.text", single_cycle_risc_inst.im.Instruction) ;
 	reset;
-	clock(2000);
+	clock(200);
 
 $finish;
 end
