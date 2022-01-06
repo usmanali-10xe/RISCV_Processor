@@ -31,7 +31,13 @@ module BTB #(parameter AWIDTH=32, DWIDTH=32)
 // writing target table on clock edge
  always@(posedge clk)
  begin
-	if(Br_x) // checking if executed inst is bracnh type: update the target table
+   if(rst) begin
+		Targets[0] = 0; //clearing valid bit
+		Targets[1] = 0; //clearing valid bit
+		Targets[2] = 0; //clearing valid bit
+		Targets[3] = 0; //clearing valid bit
+	end
+	else if(Br_x) // checking if executed inst is bracnh type: update the target table
 	case (PC_x[3:2])
 	2'b00: 
 		Targets[0] = {1'b1,PC_x,alu_out};
@@ -45,12 +51,7 @@ module BTB #(parameter AWIDTH=32, DWIDTH=32)
  end
  always@(posedge clk)
  begin
-	if(rst) begin
-		Targets[2*DWIDTH][0] = 1'b0;
-		Targets[2*DWIDTH][1] = 1'b0;
-		Targets[2*DWIDTH][2] = 1'b0;
-		Targets[2*DWIDTH][3] = 1'b0;
-	end
+	
  end
 	
 endmodule 
