@@ -21,18 +21,21 @@ module BHT
 
  always @(*)
  begin
+    if(Br_x)
     case(current_state) // condtion for current state
         SNT : 
-                next_state <= Br_x&&BrTrue? WNT:SNT;
+                next_state <= BrTrue? WNT:SNT;
         WNT: 
-                next_state <= Br_x&&BrTrue? WT:SNT;
+                next_state <= BrTrue? WT:SNT;
         WT: 
-                next_state <= Br_x&&BrTrue? ST:WNT;
+                next_state <= BrTrue? ST:WNT;
         ST : 
-                next_state <= Br_x&&BrTrue? ST:WT;      	
+                next_state <= BrTrue? ST:WT;      	
 	default:
                 next_state <= current_state;
     endcase
+    else
+	next_state = current_state;
  end
 	//output
  assign BrPred = (next_state==WT||next_state==ST)? 1'b1:1'b0;

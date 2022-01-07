@@ -28,24 +28,24 @@ module RISCV_Processor_pipelined_withBP #(parameter DWIDTH=32, AWIDTH=32, IWIDTH
 	wire [1:0] BfSel, AfSel;						// A and B data forward selection
 	wire BrUn, BrEq, BrLT;							// BrComp in out signals
 	wire RegWEn;								// Reg write enable
-	wire stall,flush,Br_x,Br_f,BrPred,BrPred_d,BrPred_x,BrTrue;
+	wire stall,flush,Br_x,Br_f,BrPred,BrPred_d,BrPred_x,BrTrue, Target_valid;
 	
 // PC
 	register pc(.clk(clk), .rst(rst), .load(!stall), .data_in(pc_in), .data_out(pc_out));
 // next PC
 	assign pc_out_new = pc_out + 32'd4;
 // PCSel_mux
-	Mux4 pc_mux(.sel(PCSel), .in0(pc_out_new), .in1(alu_out), .in2(BrTarget), .in3(32'b0), .mux_out(pc_in));
+	Mux4 pc_mux(.sel(PCSel), .in0(pc_out_new), .in1(alu_out), .in2(BrTarget), .in3(pc_out_x+32'd4), .mux_out(pc_in));
 // IMEM
 	IMEM im(.clk(clk), .ILoad(1'b0), .IAddr(pc_out), .inst(inst), .instW(32'b0));
 // BTB target buffer
-	BTB btb(.clk(clk), .rst(rst), .PC_f(pc_out), .Br_f(Br_f), .PC_x(pc_out_x), .Br_x(Br_x), .alu_out(alu_out), .BrTarget(BrTarget));
+	BTB btb(.clk(clk), .rst(rst), .PC_f(pc_out), .Br_f(Br_f), .PC_x(pc_out_x), .Br_x(Br_x), .alu_out(alu_out), .Target_valid(Target_valid),.BrTarget(BrTarget));
 // BHT FSM for prediction
 	BHT bht(.clk(clk), .rst(rst), .BrTrue(BrTrue), .Br_x(Br_x), .BrPred(BrPred));
 //*********ID register*********//
 	register ID_inst(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(inst), .data_out(inst_d));
 	register ID_pc(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(pc_out), .data_out(pc_out_d));
-	register#(.WIDTH(1)) ID_BP(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(BrPred), .data_out(BrPred_d));
+	register#(.WIDTH(1)) ID_BP(.clk(clk), .rst(rst||flush), .load(!stall), .data_in(Br_f & BrPred & Target_valid), .data_out(BrPred_d));
 // REGFILE
 	RegFile rfile(.clk(clk) , .RegWEn(RegWEn), .AddrA(inst_d[19:15]), .AddrB(inst_d[24:20]), .AddrD(inst_w[11:7]), .DataD(wb) , .DataA (DataA), .DataB (DataB));
 //*********IE register*********//
@@ -85,7 +85,7 @@ module RISCV_Processor_pipelined_withBP #(parameter DWIDTH=32, AWIDTH=32, IWIDTH
 // WbSel_mux 
 	Mux4 wb_mux(.sel(WBSel), .in0(mem_w), .in1(alu_out_w), .in2(pc_out_w), .in3(imm_w), .mux_out(wb));
 // Controller
-	controller_pipelined_withBP control (.BrEq(BrEq), .BrLT(BrLT), .BrPred_x(BrPred_x), .Br_f(Br_f), .Br_x(Br_x), .BrTrue(BrTrue),
+	controller_pipelined_withBP control (.Target_valid(Target_valid), .BrEq(BrEq), .BrLT(BrLT),.BrPred(BrPred), .BrPred_x(BrPred_x), .Br_f(Br_f), .Br_x(Br_x), .BrTrue(BrTrue),
 				 .inst_f(inst), .inst_x(inst_x), .inst_m(inst_m),.inst_w(inst_w),  .PCSel(PCSel),  .ImmSel(ImmSel),
 		                 .RegWEn(RegWEn),  .BrUn(BrUn), .ASel(ASel), .BSel(BSel), .AfSel(AfSel), .BfSel(BfSel), .ALUSel(ALUSel),
 		                 .MemRW(MemRW), .WBSel(WBSel), .Size(Size), .stall(stall), .flush(flush));

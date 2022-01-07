@@ -1,12 +1,13 @@
 module controller_pipelined_withBP #(parameter AWIDTH=32, DWIDTH=32 )
-(	input			BrEq,
+(	
+	input			BrEq,
 	input			BrLT,
 	input	[DWIDTH-1:0]	inst_f,
 	input	[DWIDTH-1:0]	inst_x,
 	input	[DWIDTH-1:0]	inst_m,
 	input	[DWIDTH-1:0]	inst_w,
-	input			BrPred_x,
-	output	        [1:0]  	PCSel,
+	input			BrPred_x, Target_valid, BrPred,
+	output	   	[1:0]  	PCSel,
 	output		[2:0]	ImmSel,
 	output  		RegWEn,
 	output  		BrUn,
@@ -17,7 +18,7 @@ module controller_pipelined_withBP #(parameter AWIDTH=32, DWIDTH=32 )
 	output		[1:0]	WBSel,
 	output			stall,
 	output			flush,
-	output			Br_f, Br_x, BrTrue,
+	output			Br_f, Br_x, BrTrue, 
 	output		[2:0]	Size
 );
 	// instruction types based on opcode
@@ -44,10 +45,10 @@ module controller_pipelined_withBP #(parameter AWIDTH=32, DWIDTH=32 )
 	/////////////////// IF - stage ///////////////////
 	assign Br_f	= (opcode_f==sbtype);
 	/////////////////// IE - stage ///////////////////
-	assign BrTrue	= (func3_x[2]&func3_x[0])? (BrEq || !BrLT)
-			: (func3_x[2]&!func3_x[0])? BrLT
-			:  func3_x[0]?		!BrEq
-			:			BrEq;
+	assign BrTrue	= (func3_x[2]&func3_x[0])? (BrEq || !BrLT)&(|opcode_x)
+			: (func3_x[2]&!func3_x[0])? BrLT&(|opcode_x)
+			:  func3_x[0]?		!BrEq&(|opcode_x)
+			:			BrEq&(|opcode_x);
 	assign Br_x	= (opcode_x==sbtype);
 	assign BrUn	= func3_x[2] & func3_x[1];
 	assign ALUSel 	= (opcode_x==rtype1||opcode_x==rtype2)?{inst_x[30],func3_x} 
@@ -73,10 +74,10 @@ module controller_pipelined_withBP #(parameter AWIDTH=32, DWIDTH=32 )
 	assign RegWEn	= !(opcode_w==sbtype||opcode_w==stype);
 	
 	//////////////// depends on branch//////
-	assign PCSel	= flush?	2'b01 
-			: Br_f?		2'b10
-			: 		2'b00;
-
+	assign PCSel 	= flush? (BrPred_x? 2'b11:2'b01) 
+			: Br_f & BrPred & Target_valid? 2'b10
+			: 2'b00;
+	
 	//////////////// Forwarding muxer selection//////
 	//wire x_have_rs1 = !(opcode_x==utype1||opcode_x==utype2||opcode_x==ujtype)&&!(opcode_x==0);
 	//wire x_have_rs2 = (opcode_x==rtype1||opcode_x==rtype2||opcode_x==stype||opcode_x==sbtype)&&!(opcode_x==0);

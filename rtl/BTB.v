@@ -2,11 +2,12 @@ module BTB #(parameter AWIDTH=32, DWIDTH=32)
  (
 	input				clk,
 	input				rst,
-	input		[AWIDTH-1:0]	PC_x,
 	input				Br_x,
-	input		[AWIDTH-1:0]	alu_out,
 	input				Br_f,
 	input		[AWIDTH-1:0]	PC_f,
+	input		[AWIDTH-1:0]	PC_x,
+	input		[AWIDTH-1:0]	alu_out,
+	output				Target_valid,
 	output 		[DWIDTH-1:0]	BrTarget
  );
 	reg	[2*DWIDTH:0]	Targets[0:3];
@@ -27,7 +28,8 @@ module BTB #(parameter AWIDTH=32, DWIDTH=32)
 	endcase
  end
 // checking valid bit, Tag and if the fetched inst is branch type
-	assign BrTarget = (Entry[2*DWIDTH]&&(Entry[2*DWIDTH-1:DWIDTH]==PC_f)&&Br_x) ? Entry[DWIDTH-1:0] : PC_f+32'd4;  
+	assign BrTarget = Entry[DWIDTH-1:0];
+	assign Target_valid= Entry[2*DWIDTH]&&(Entry[2*DWIDTH-1:DWIDTH]==PC_f);
 // writing target table on clock edge
  always@(posedge clk)
  begin
@@ -49,9 +51,5 @@ module BTB #(parameter AWIDTH=32, DWIDTH=32)
 		Targets[3] = {1'b1,PC_x,alu_out};
 	endcase
  end
- always@(posedge clk)
- begin
-	
- end
-	
+
 endmodule 

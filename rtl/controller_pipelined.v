@@ -1,6 +1,6 @@
 module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
-(	input			BrEq,
-	input			BrLT,
+(	
+	input			BrEq, BrLT,
 	input	[DWIDTH-1:0]	inst_x,
 	input	[DWIDTH-1:0]	inst_m,
 	input	[DWIDTH-1:0]	inst_w,
@@ -67,10 +67,9 @@ module controller_pipelined #(parameter AWIDTH=32, DWIDTH=32 )
 			:					2'b01;
 	assign RegWEn	= !(opcode_w==sbtype||opcode_w==stype);
 	
-	//////////////// depends on branch//////
-	assign PCSel	= (opcode_x==sbtype)? BrTrue 
-			: opcode_x[6]; 
-
+	//////////////// depends on branch//////	
+	assign PCSel	= (opcode_x==sbtype)? BrTrue : opcode_x[6];
+ 
 	//////////////// Forwarding muxer selection//////
 	//wire x_have_rs1 = !(opcode_x==utype1||opcode_x==utype2||opcode_x==ujtype)&&!(opcode_x==0);
 	//wire x_have_rs2 = (opcode_x==rtype1||opcode_x==rtype2||opcode_x==stype||opcode_x==sbtype)&&!(opcode_x==0);
