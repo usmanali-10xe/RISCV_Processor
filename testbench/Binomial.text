@@ -1,0 +1,9 @@
+@00		00 00 00 13		//addi x0 x0 0            //calculating sum of n number (Binomial coefficient)
+ 		00 00 0d b3		//add x27 x0 x0           //sum
+ 		00 a0 0d 13		//addi x26 x0 10          //inital number
+ 		01 bd 0d b3		//add x27 x26 x27
+ 		ff fd 0d 13		//addi x26 x26 -1
+ 		fe 0d 1c e3		//bne x26 x0 -8         //terminating condition  55
+ 		00 00 00 13		//addi x0 x0 0 
+ 		00 00 00 13		//addi x0 x0 0 
+ 		00 00 00 13		//addi x0 x0 0 

@@ -1,6 +1,6 @@
 @00	
-	//00 30 0E 13 //    addi 	t3, x0, 3	#initial number of series
-	//00 A0 0A 93 //    addi	s5, x0, 10	#total numbers to be stored in array
+	00 30 0E 13 //    addi 	t3, x0, 3	#initial number of series
+	00 A0 0A 93 //    addi	s5, x0, 10	#total numbers to be stored in array
 	00 2A 9A 93 //    slli	s5, s5, 2	#total numbers to be stored in array word addressable
 	00 00 09 33 //    add	s2, x0, x0	#array address
 	00 09 03 93 //    mv	t2, s2		#array address in temp for advancement

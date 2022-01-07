@@ -31,3 +31,4 @@ done:
 	FF F7 07 13      //addi x14,x14,-1
 	FE DF FE EF      //jal x29, loop             loop=-5*4
 	00 10 0F 93      //done: addi x31,x0,1
+	00 00 00 13
